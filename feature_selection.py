@@ -29,7 +29,7 @@ def get_best_features(FEATURE_IMPT, X, y, reduce_ratio = 0.1):
     return best_features
 
 # Algoirthm 1
-def algo1(X, y, reduce_ratio = 0.1):
+def algo1(X, y):
 
     baseline = svm_cv(X, y)
     
@@ -51,7 +51,7 @@ def algo1(X, y, reduce_ratio = 0.1):
 
 
 # Algorithm 2
-def algo2(X, y, reduce_ratio = 0.1, N = 100):
+def algo2(X, y, N = 100):
     
     num_features = X.shape[1]
 
