@@ -74,7 +74,7 @@ def main(method, data, algo, idx=-1):
 
             # add to acc list
             ACC = np.append(ACC, pred == y_test[i])
-        print(f"Accuracy: {ACC.mean():.02f}")
+        print(f"Accuracy: {ACC.mean():.04f}")
         
 
     end_time = time.time()
