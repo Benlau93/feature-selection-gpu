@@ -53,14 +53,16 @@ def algo1(X, y):
 # Algorithm 2
 def algo2(X, y, N = 100):
     
+    # define num feature and midpoint
     num_features = X.shape[1]
+    midpoint = num_features // 2
+    feature_list = np.arange(num_features)
 
     CONTAINS_F, NO_F = np.zeros(num_features), np.zeros(num_features)
     
     for i in range(N):
         # randomly divide into 2 equal halves
-        midpoint = num_features // 2
-        permu = np.random.permutation(np.arange(num_features))
+        permu = np.random.permutation(feature_list)
         first_idx, sec_idx = permu[:midpoint], permu[midpoint:]
         first_half, sec_half = X[:, first_idx], X[:, sec_idx]
 
