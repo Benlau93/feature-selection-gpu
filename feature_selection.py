@@ -23,7 +23,7 @@ def get_best_features(FEATURE_IMPT, X, y, reduce_ratio = 0.1):
         CV_RESULTS = np.append(CV_RESULTS, acc)
     
     # get number of feature that resulted in highest cv
-    num_feature = CV_RESULTS = np.argsort(CV_RESULTS)[-1] + 1
+    num_feature = np.argsort(CV_RESULTS)[-1] + 1
     best_features = FEATURE_IMPT[:num_feature]
 
     return best_features
