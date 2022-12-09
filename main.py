@@ -1,7 +1,6 @@
 import numpy as np
 from data import load_mnist
 from GENIE import GENIE
-from sklearn.preprocessing import MinMaxScaler
 from feature_selection import algo1, algo2
 from svm import svm
 import time
@@ -14,17 +13,10 @@ def main(method, data, algo, idx=-1):
     algo = algo1 if algo == "1" else algo2
 
     # get data
-    train, test = load_mnist()
-    X_train, y_train = train.drop("label", axis=1).values , train["label"].values
-    X_test, y_test = test.drop("label", axis=1).values , test["label"].values
+    X_train, y_train,X_test, y_test  = load_mnist()
 
     # track time
     start_time = time.time()
-
-    # min max scale
-    scaler = MinMaxScaler()
-    X_train = scaler.fit_transform(X_train)
-    X_test = scaler.transform(X_test)
 
     # train GENIE to get local NN classifer
     nn_model = GENIE(X_train)
