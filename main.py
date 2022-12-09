@@ -1,10 +1,13 @@
 import numpy as np
+from sklearn.metrics import precision_recall_fscore_support, accuracy_score
+import time
+import sys
+
 from data import load_mnist
 from GENIE import GENIE
 from feature_selection import algo1, algo2
 from svm import svm
-import time
-import sys
+
 
 def get_prediction(X_train, y_train, nn_model, query):
     # get nearest neighbour of a single query
@@ -69,7 +72,10 @@ def main(method, data, algo, idx, top):
     elif method == "evaluate":
         
         print(f"--- Evaluating on {idx} Testing Data ---")
-        ACC = np.zeros(0)
+        # initialize y_true and pred
+        y_true = np.zeros(0)
+        y_pred = np.zeros(0)
+
         for i in range(idx):
             # get query
             query = X_test[i]
@@ -82,10 +88,15 @@ def main(method, data, algo, idx, top):
             NUM_FEATURES += len(best_feature)
             NUM_TEST += 1
 
-            # add to acc list
-            ACC = np.append(ACC, pred == y_test[i])
-            
-        print(f"Accuracy: {ACC.mean():.04f}")
+            # add to y list
+            y_true = np.append(y_true, y_test[i])
+            y_pred = np.append(y_pred, pred)
+        
+        # get classification metrics
+        acc = accuracy_score(y_true, y_pred)
+        precision, recall, f1, _ = precision_recall_fscore_support(y_true, y_pred, average = "weighted")
+
+        print(f"Accuracy: {acc:.04f}, Precision: {precision:.04f}, Recall: {recall:.04f}, F1: {f1:.04f}")
         
 
     end_time = time.time()
