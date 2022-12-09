@@ -6,7 +6,8 @@ from svm import svm_cv
 def get_best_features(FEATURE_IMPT, X, y, reduce_ratio = 0.1):
 
     # sort cv in descending order
-    FEATURE_IMPT = np.argsort(FEATURE_IMPT)[::-1]
+    FEATURE_IMPT_ARG = np.argsort(FEATURE_IMPT)[::-1]
+    FEATURE_IMPT = FEATURE_IMPT[FEATURE_IMPT_ARG]
 
     # max_feature
     num_feature = len(FEATURE_IMPT)
@@ -24,9 +25,10 @@ def get_best_features(FEATURE_IMPT, X, y, reduce_ratio = 0.1):
     
     # get number of feature that resulted in highest cv
     num_feature = np.argsort(CV_RESULTS)[-1] + 1
-    best_features = FEATURE_IMPT[:num_feature]
+    best_features_arg = FEATURE_IMPT_ARG[:num_feature]
+    best_feature = FEATURE_IMPT[:num_feature]
 
-    return best_features
+    return best_features_arg, best_feature
 
 # Algoirthm 1
 def algo1(X, y):
@@ -45,9 +47,9 @@ def algo1(X, y):
         FEATURE_IMPT = np.append(FEATURE_IMPT, imp)
     
     # get best features
-    best_features = get_best_features(FEATURE_IMPT, X, y)
+    best_features_arg, best_feature = get_best_features(FEATURE_IMPT, X, y)
 
-    return best_features
+    return best_features_arg, best_feature
 
 
 # Algorithm 2
@@ -79,9 +81,9 @@ def algo2(X, y, N = 100):
     FEATURE_IMPT = CONTAINS_F / NO_F
 
     # get best features
-    best_features = get_best_features(FEATURE_IMPT, X, y)
+    best_features_arg, best_feature = get_best_features(FEATURE_IMPT, X, y)
 
-    return best_features
+    return best_features_arg, best_feature
 
 
 
