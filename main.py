@@ -24,12 +24,17 @@ def get_prediction(X_train, y_train, nn_model, query):
     
     return pred, best_features_arg, best_feature
 
+def verbose_feature_impt(AVG_FEATURE_IMPT_ARG, AVG_FEATURE_IMPT):
+    print()
+    print("--- Feature Importance ---")
+    print("Feature      |       Importance")
+    for i in range(len(AVG_FEATURE_IMPT_ARG)):
+        print(f"x{AVG_FEATURE_IMPT_ARG[i]}       |       {AVG_FEATURE_IMPT[i]:.04f}")
+    print(f"Average number of Features: {AVG_FEATURES:.02f}")
+    print()
+
 
 def main(method, data, algo, idx, top):
-    # format arg
-    idx = int(idx)
-    algo = algo1 if algo == "1" else algo2
-    top = int(top)
 
     # get data
     X_train, y_train,X_test, y_test  = load_mnist()
@@ -90,13 +95,9 @@ def main(method, data, algo, idx, top):
     AVG_FEATURES = NUM_FEATURES / NUM_TEST
     AVG_FEATURE_IMPT_ARG = np.argsort(AVG_FEATURE_IMPT)[::-1][:top]
     AVG_FEATURE_IMPT = AVG_FEATURE_IMPT[AVG_FEATURE_IMPT_ARG]
-    print()
-    print("--- Feature Importance ---")
-    print("Feature      |       Importance")
-    for t in range(top):
-        print(f"x{AVG_FEATURE_IMPT_ARG[t]}       |       {AVG_FEATURE_IMPT[t]:.04f}")
-    print(f"Average number of Features: {AVG_FEATURES:.02f}")
-    print()
+    
+    verbose_feature_impt(AVG_FEATURE_IMPT_ARG, AVG_FEATURE_IMPT)
+
     print(f"Time Taken: {end_time - start_time:.04f}s")
     return 1
 
@@ -108,5 +109,15 @@ if __name__ == "__main__":
         top = 10
     else:
         method, data, algo, idx, top = sys.argv[1:6]
+
+    # format arg
+    try:
+        idx = int(idx)
+        algo = int(algo)
+        top = int(top)
+    except ValueError:
+        raise ValueError("Wrong format entered")
+
+    algo = algo1 if algo == 1 else algo2
 
     main(method, data, algo, idx, top)
