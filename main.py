@@ -86,15 +86,16 @@ def main(method, data, algo, idx, top):
     end_time = time.time()
 
     # verbose for top feature importance
-    FEATURE_IMPT = FEATURE_IMPT / NUM_TEST
-    FEATURE_IMPT_ARG = np.argsort(FEATURE_IMPT)[::-1][:top]
-    FEATURE_IMPT = FEATURE_IMPT[FEATURE_IMPT_ARG]
+    AVG_FEATURE_IMPT = FEATURE_IMPT / NUM_TEST
+    AVG_FEATURES = NUM_FEATURES / NUM_TEST
+    AVG_FEATURE_IMPT_ARG = np.argsort(AVG_FEATURE_IMPT)[::-1][:top]
+    AVG_FEATURE_IMPT = AVG_FEATURE_IMPT[AVG_FEATURE_IMPT_ARG]
     print()
     print("--- Feature Importance ---")
     print("Feature      |       Importance")
     for t in range(top):
-        print(f"{FEATURE_IMPT_ARG[t]}       |       {FEATURE_IMPT[t]:.04f}")
-
+        print(f"x{AVG_FEATURE_IMPT_ARG[t]}       |       {AVG_FEATURE_IMPT[t]:.04f}")
+    print(f"Average number of Features: {AVG_FEATURES:.02f}")
     print()
     print(f"Time Taken: {end_time - start_time:.04f}s")
     return 1
