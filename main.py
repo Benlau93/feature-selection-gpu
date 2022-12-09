@@ -6,6 +6,24 @@ from svm import svm
 import time
 import sys
 
+def get_prediction(X_train, y_train, nn_model, query):
+    # get nearest neighbour of a single query
+    nn = nn_model.get_NN([query])[0]
+    
+    # feature selection on query + nn
+    X_nn, y_nn = X_train[nn], y_train[nn]
+    if len(np.unique(y_nn)) == 1: # if all neighbour has the same class, no training needed
+        pred = [y_nn[0]]
+    else:
+        best_features = algo(X_nn, y_nn)
+        
+        # train classifier on best_features
+        X_nn_fs, query_fs = X_nn[:, best_features], query[best_features]
+        model = svm(X_nn_fs, y_nn)
+        pred = model.predict(query_fs.reshape(1,-1))
+    
+    return pred
+
 
 def main(method, data, algo, idx=-1):
     # format arg
@@ -24,21 +42,12 @@ def main(method, data, algo, idx=-1):
     # get overall test dataset acc
     if method == "test":
         print(f"--- Predicting on Index {idx} ---")
-        # get nearest neighbour of a single query
+        # get query
         query = X_test[idx]
-        nn = nn_model.get_NN([query])[0]
-        
-        # feature selection on query + nn
-        X_nn, y_nn = X_train[nn], y_train[nn]
-        if len(np.unique(y_nn)) == 1: # if all neighbour has the same class, no training needed
-            pred = [y_nn[0]]
-        else:
-            best_features = algo(X_nn, y_nn)
-            
-            # train classifier on best_features
-            X_nn_fs, query_fs = X_nn[:, best_features], query[best_features]
-            model = svm(X_nn_fs, y_nn)
-            pred = model.predict(query_fs.reshape(1,-1))
+
+        # get prediction
+        pred = get_prediction(X_train, y_train, query, nn_model)
+
         print(f"True Label: {y_test[idx]}, Predicted: {pred[0]}")
 
     elif method == "evaluate":
@@ -49,23 +58,12 @@ def main(method, data, algo, idx=-1):
             # get query
             query = X_test[i]
 
-            # get nearest neighbour
-            nn = nn_model.get_NN([query])[0]
-
-            # feature selection on query + nn
-            X_nn, y_nn = X_train[nn], y_train[nn]
-            if len(np.unique(y_nn)) == 1: # if all neighbour has the same class, no training needed
-                pred = y_nn[0]
-            else:
-                best_features = algo(X_nn, y_nn)
-
-                # train classifier on best_features
-                X_nn_fs, query_fs = X_nn[:, best_features], query[best_features]
-                model = svm(X_nn_fs, y_nn)
-                pred = model.predict(query_fs.reshape(1,-1))[0]
+            # get prediction
+            pred = get_prediction(X_train, y_train, query, nn_model)
 
             # add to acc list
             ACC = np.append(ACC, pred == y_test[i])
+            
         print(f"Accuracy: {ACC.mean():.04f}")
         
 
