@@ -1,5 +1,6 @@
 from sklearn.svm import SVC
 from sklearn.model_selection import cross_val_score
+import numpy as np
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -9,7 +10,7 @@ def svm_cv(X,y):
     clf = SVC(kernel="linear", random_state = RANDOM_STATE)
     score = cross_val_score(clf, X, y, cv=5, scoring = "accuracy")
 
-    return score.mean()
+    return np.nanmean(score) # handle CV with nan acc
 
 
 def svm(X,y):

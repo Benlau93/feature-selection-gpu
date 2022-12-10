@@ -16,7 +16,7 @@ def get_best_features(FEATURE_IMPT, X, y, reduce_ratio = 0.1):
     CV_RESULTS = np.zeros(0)
     x_fs = np.ones((X.shape[0],1))
     for i in range(max_num_feature):
-        idx = FEATURE_IMPT[i]
+        idx = FEATURE_IMPT_ARG[i]
         x_fs = np.concatenate((x_fs, X[:,idx].reshape(-1,1)), axis=1)
         acc = svm_cv(x_fs[:,1:], y)
         
@@ -61,7 +61,8 @@ def algo2(X, y, N = 100):
     feature_list = np.arange(num_features)
 
     CONTAINS_F, NO_F = np.zeros(num_features), np.zeros(num_features)
-    
+    # set seed
+    np.random.seed(42)
     for i in range(N):
         # randomly divide into 2 equal halves
         permu = np.random.permutation(feature_list)
@@ -74,9 +75,9 @@ def algo2(X, y, N = 100):
 
         # save acc
         CONTAINS_F[first_idx] += acc1
+        NO_F[sec_idx] += acc1
         CONTAINS_F[sec_idx] += acc2
         NO_F[first_idx] += acc2
-        NO_F[sec_idx] += acc1
     
     FEATURE_IMPT = CONTAINS_F / NO_F
 
