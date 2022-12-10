@@ -84,7 +84,7 @@ def main(method, data, algo, idx, top):
             query = X_test[i]
 
             # get prediction
-            pred, best_features_arg, best_feature = get_prediction(X_train, y_train, nn_model, algo, query)
+            pred, best_features_arg, best_feature = get_prediction(X_train, y_train, nn_model, algo_f, query)
 
             # add to feature impt
             if len(best_features_arg) >0:
