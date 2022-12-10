@@ -74,7 +74,7 @@ def main(method, data, algo, idx, top):
 
     elif method == "evaluate":
         
-        print(f"--- Evaluating on {idx} Testing Data [Algorithm {algo}]---")
+        print(f"--- Evaluating on {idx:,} Testing Data [Algorithm {algo}]---")
         # initialize y_true and pred
         y_true = np.zeros(0)
         y_pred = np.zeros(0)
