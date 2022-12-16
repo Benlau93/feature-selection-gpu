@@ -14,7 +14,7 @@ def get_prediction(X_train, y_train, nn_model, algo ,query):
     # if knn
     if "KNN" in algo:
         # get nearest neighbour of a single query
-        nn = nn_model.get_NN([query])[0]
+        nn = nn_model.get_NN([query.flatten()])[0]
         X_, y_ = X_train[nn], y_train[nn]
     else:
         X_, y_ = X_train, y_train
@@ -105,8 +105,8 @@ def main(method, data, algo, idx, top):
                 # get query
                 query = X_test[i].reshape(-1,num_feature)
 
-                    # get prediction
-                    pred, best_features_arg, best_feature = get_prediction(X_train, y_train, nn_model, algo, query)
+                # get prediction
+                pred, best_features_arg, best_feature = get_prediction(X_train, y_train, nn_model, algo, query)
 
                 # add to feature impt
                 if len(best_features_arg) >0:
@@ -123,7 +123,7 @@ def main(method, data, algo, idx, top):
             y_true = y_test[:idx]
 
             # get query
-            query = x_test[:idx].reshape(-1, num_feature)
+            query = X_test[:idx].reshape(-1, num_feature)
             # get prediction
             y_pred, best_features_arg, best_feature = get_prediction(X_train, y_train, nn_model, algo, query)
         
