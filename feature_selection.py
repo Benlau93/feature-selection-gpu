@@ -3,7 +3,7 @@ from svm import svm_cv
 
 
 # helper function
-def get_best_features(FEATURE_IMPT, X, y, reduce_ratio = 0.1):
+def get_best_features(FEATURE_IMPT, X, y, reduce_ratio = 0.15):
 
     # sort cv in descending order
     FEATURE_IMPT_ARG = np.argsort(FEATURE_IMPT)[::-1]
