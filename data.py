@@ -36,4 +36,9 @@ def load_splice():
     X_train = enc.fit_transform(X_train)
     X_test = enc.transform(X_test)
 
+    # min max scale
+    scaler = MinMaxScaler()
+    X_train = scaler.fit_transform(X_train)
+    X_test = scaler.transform(X_test)
+
     return X_train, y_train.values, X_test, y_test.values
