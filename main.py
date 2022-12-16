@@ -3,7 +3,7 @@ from sklearn.metrics import precision_recall_fscore_support, accuracy_score
 import time
 import sys
 
-from data import load_mnist
+from data import load_mnist, load_splice
 from GENIE import GENIE
 from feature_selection import algo1, algo2
 from svm import svm
@@ -59,7 +59,12 @@ def verbose_feature_impt(AVG_FEATURE_IMPT_ARG, AVG_FEATURE_IMPT, AVG_FEATURES):
 def main(method, data, algo, idx, top):
 
     # get data
-    X_train, y_train,X_test, y_test  = load_mnist()
+    if data == "mnist":
+        X_train, y_train,X_test, y_test  = load_mnist()
+    elif data == "splice":
+        X_train, y_train,X_test, y_test  = load_splice()
+    else:
+        raise ValueError("Wrong data entered")
 
     # initialize feature impt
     num_feature = X_train.shape[1]
@@ -161,6 +166,7 @@ if __name__ == "__main__":
     try:
         idx = int(idx)
         top = int(top)
+        data = data.lower()
         algo = algo.upper()
     except ValueError:
         raise ValueError("Wrong format entered")
