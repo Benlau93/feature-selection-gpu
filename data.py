@@ -1,6 +1,6 @@
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler, OrdinalEncoder
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, StratifiedShuffleSplit
 import os
 
 DATA_DIR = r".\data"
@@ -42,3 +42,23 @@ def load_splice():
     X_test = scaler.transform(X_test)
 
     return X_train, y_train.values, X_test, y_test.values
+
+
+# SUN
+def load_sun():
+    df = pd.read_csv(os.path.join(DATA_DIR,"sun_data.csv"))
+    X, y = df.drop(["label"], axis=1).values, df["label"].values
+
+    # split into training and testing set
+    sss = StratifiedShuffleSplit(n_splits=1, test_size=500, random_state=RANDOM_STATE)
+
+    for train_index, test_index in sss.split(X,y):
+        X_train, y_train = X[train_index], y[train_index]
+        X_test, y_test = X[test_index], y[test_index]
+
+    # min max scale
+    scaler = MinMaxScaler()
+    X_train = scaler.fit_transform(X_train)
+    X_test = scaler.transform(X_test)
+
+    return X_train, y_train, X_test, y_test
