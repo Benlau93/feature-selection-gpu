@@ -3,7 +3,7 @@ from sklearn.preprocessing import MinMaxScaler, OrdinalEncoder
 from sklearn.model_selection import train_test_split
 import os
 
-DATA_DIR = r"C:\Users\ben_l\Desktop\DA Toolkit\Feature Selection\Python Implementation\data"
+DATA_DIR = r".\data"
 RANDOM_STATE = 42
 
 #  MNIST
