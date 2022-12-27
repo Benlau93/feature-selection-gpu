@@ -1,5 +1,6 @@
 import numpy as np
-from svm import svm_cv
+from svm import svm_cv, svm
+from sklearn.feature_selection import RFE
 
 
 # helper function
@@ -87,5 +88,20 @@ def algo2(X, y, N = 100):
     return best_features_arg, best_feature
 
 
+# sklearn RFE
+def rfe(X, y):
 
+    # get estimator
+    estimator = svm(X,y)
 
+    # feature selection
+    selector = RFE(estimator, n_features_to_select=0.15)
+    selector = selector.fit(X,y)
+
+    # get features importance
+    FEATURE_IMPT = 1 / selector.ranking_ # best feature with largest importance
+
+    # get best features
+    best_features_arg, best_feature = get_best_features(FEATURE_IMPT, X, y)
+
+    return best_features_arg, best_feature

@@ -5,7 +5,7 @@ import sys
 
 from data import load_mnist, load_splice, load_sun, load_custom
 from GENIE import GENIE
-from feature_selection import algo1, algo2
+from feature_selection import algo1, algo2, rfe
 from svm import svm
 
 
@@ -28,7 +28,12 @@ def get_prediction(X_train, y_train, nn_model, algo ,query):
         # if feature selection algo is selected
         if "FS" in algo:
             # run feature selection
-            algo_f = algo1 if "FS1" in algo else algo2
+            if "1" in algo:
+                algo_f = algo1
+            elif "2" in algo:
+                algo_f = algo2
+            elif "RFE" in algo:
+                algo_f = rfe
             best_features_arg, best_feature = algo_f(X_, y_)
             
             # filter to best features
