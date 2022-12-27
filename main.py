@@ -3,7 +3,7 @@ from sklearn.metrics import precision_recall_fscore_support, accuracy_score
 import time
 import sys
 
-from data import load_mnist, load_splice, load_sun
+from data import load_mnist, load_splice, load_sun, load_custom
 from GENIE import GENIE
 from feature_selection import algo1, algo2
 from svm import svm
@@ -65,6 +65,9 @@ def main(method, data, algo, idx, top):
         X_train, y_train,X_test, y_test  = load_splice()
     elif data == "sun":
         X_train, y_train,X_test, y_test  = load_sun()
+    elif data.startswith("custom"):
+        file_name = data.split("_")[-1]
+        X_train, y_train,X_test, y_test  = load_custom(file_name)
     else:
         raise ValueError("Wrong data entered")
 
