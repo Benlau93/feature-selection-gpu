@@ -1,5 +1,6 @@
 import numpy as np
 from sklearn.metrics import precision_recall_fscore_support, accuracy_score
+from scipy.stats import mode
 import time
 import sys
 
@@ -16,6 +17,7 @@ def get_prediction(X_train, y_train, nn_model, algo ,query):
         # get nearest neighbour of a single query
         nn = nn_model.get_NN([query.flatten()])[0]
         X_, y_ = X_train[nn], y_train[nn]
+
     else:
         X_, y_ = X_train, y_train
 
@@ -25,18 +27,30 @@ def get_prediction(X_train, y_train, nn_model, algo ,query):
         best_features_arg, best_feature = [], []
     
     else:
-        # get model name
-        model_name = algo.split("+")[-2]
+        try:
+            algo = algo.split("+")[1:]
+            if len(algo) ==2:
+                fs_name = algo[1]
+            else:
+                fs_name = None
+            model_name = algo[0]
+        except:
+            pred = mode(y_)[0]
+            best_features_arg, best_feature = [], []
+            return pred, best_features_arg, best_feature
+
 
         # if feature selection algo is selected
-        if "FS" in algo:
+        if fs_name:
             # run feature selection
-            if "1" in algo:
+            if fs_name == "FS1":
                 algo_f = algo1
-            elif "2" in algo:
+            elif fs_name == "FS2":
                 algo_f = algo2
-            elif "RFE" in algo:
+            elif fs_name == "RFE":
                 algo_f = rfe
+            else:
+                raise Exception("Unknown Feature Selection algo")
             best_features_arg, best_feature = algo_f(X_, y_, model_name)
             
             # filter to best features
@@ -48,9 +62,9 @@ def get_prediction(X_train, y_train, nn_model, algo ,query):
 
 
         # train model on selected features
-        model = model(X_, y_, model_name)
+        clf = model(X_, y_, model_name)
         # make prediction
-        pred = model.predict(query.reshape(-1,X_.shape[1]))
+        pred = clf.predict(query.reshape(-1,X_.shape[1]))
     
     
     return pred, best_features_arg, best_feature

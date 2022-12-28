@@ -1,5 +1,5 @@
 import numpy as np
-from svm import cv
+from model import cv, model
 from sklearn.feature_selection import RFE
 
 
@@ -92,7 +92,7 @@ def algo2(X, y, model_name, N = 100):
 def rfe(X, y, model_name):
 
     # get estimator
-    estimator = svm(X,y)
+    estimator = model(X,y, model_name)
 
     # feature selection
     selector = RFE(estimator, n_features_to_select=0.15)
