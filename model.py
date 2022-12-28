@@ -18,7 +18,7 @@ def cv(X,y, model_name):
     return np.nanmean(score) # handle CV with nan acc
 
 
-def model_name(X,y, model_name):
+def model(X,y, model_name):
     if model_name == "SVM":
         clf = SVC(kernel="linear", random_state = RANDOM_STATE)
     elif model_name == "RF":
