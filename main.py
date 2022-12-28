@@ -6,7 +6,7 @@ import sys
 from data import load_mnist, load_splice, load_sun, load_custom
 from GENIE import GENIE
 from feature_selection import algo1, algo2, rfe
-from svm import svm
+from model import model
 
 
 def get_prediction(X_train, y_train, nn_model, algo ,query):
@@ -25,6 +25,9 @@ def get_prediction(X_train, y_train, nn_model, algo ,query):
         best_features_arg, best_feature = [], []
     
     else:
+        # get model name
+        model_name = algo.split("+")[-2]
+
         # if feature selection algo is selected
         if "FS" in algo:
             # run feature selection
@@ -34,7 +37,7 @@ def get_prediction(X_train, y_train, nn_model, algo ,query):
                 algo_f = algo2
             elif "RFE" in algo:
                 algo_f = rfe
-            best_features_arg, best_feature = algo_f(X_, y_)
+            best_features_arg, best_feature = algo_f(X_, y_, model_name)
             
             # filter to best features
             X_, query = X_[:, best_features_arg], query[:, best_features_arg]
@@ -43,8 +46,9 @@ def get_prediction(X_train, y_train, nn_model, algo ,query):
             best_features_arg, best_feature = [], []
 
 
+
         # train model on selected features
-        model = svm(X_, y_)
+        model = model(X_, y_, model_name)
         # make prediction
         pred = model.predict(query.reshape(-1,X_.shape[1]))
     

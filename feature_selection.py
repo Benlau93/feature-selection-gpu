@@ -1,10 +1,10 @@
 import numpy as np
-from svm import svm_cv, svm
+from svm import cv
 from sklearn.feature_selection import RFE
 
 
 # helper function
-def get_best_features(FEATURE_IMPT, X, y, reduce_ratio = 0.15):
+def get_best_features(FEATURE_IMPT, X, y, model_name, reduce_ratio = 0.15):
 
     # sort cv in descending order
     FEATURE_IMPT_ARG = np.argsort(FEATURE_IMPT)[::-1]
@@ -19,7 +19,7 @@ def get_best_features(FEATURE_IMPT, X, y, reduce_ratio = 0.15):
     for i in range(max_num_feature):
         idx = FEATURE_IMPT_ARG[i]
         x_fs = np.concatenate((x_fs, X[:,idx].reshape(-1,1)), axis=1)
-        acc = svm_cv(x_fs[:,1:], y)
+        acc = cv(x_fs[:,1:], y, model_name)
         
         # store cv result
         CV_RESULTS = np.append(CV_RESULTS, acc)
@@ -32,29 +32,29 @@ def get_best_features(FEATURE_IMPT, X, y, reduce_ratio = 0.15):
     return best_features_arg, best_feature
 
 # Algoirthm 1
-def algo1(X, y):
+def algo1(X, y, model_name):
 
-    baseline = svm_cv(X, y)
+    baseline = cv(X, y, model_name)
     
     FEATURE_IMPT = np.zeros(0)
 
     num_feature = X.shape[1]
     for i in range(num_feature):
         Xi = np.delete(X,i, axis=1)
-        acc = svm_cv(Xi, y)
+        acc = cv(Xi, y, model_name)
         imp = acc - baseline
 
         # store acc
         FEATURE_IMPT = np.append(FEATURE_IMPT, imp)
     
     # get best features
-    best_features_arg, best_feature = get_best_features(FEATURE_IMPT, X, y)
+    best_features_arg, best_feature = get_best_features(FEATURE_IMPT, X, y, model_name)
 
     return best_features_arg, best_feature
 
 
 # Algorithm 2
-def algo2(X, y, N = 100):
+def algo2(X, y, model_name, N = 100):
     
     # define num feature and midpoint
     num_features = X.shape[1]
@@ -71,8 +71,8 @@ def algo2(X, y, N = 100):
         first_half, sec_half = X[:, first_idx], X[:, sec_idx]
 
         # SVM cv on both halves
-        acc1 = svm_cv(first_half, y)
-        acc2 = svm_cv(sec_half, y)
+        acc1 = cv(first_half, y, model_name)
+        acc2 = cv(sec_half, y, model_name)
 
         # save acc
         CONTAINS_F[first_idx] += acc1
@@ -83,13 +83,13 @@ def algo2(X, y, N = 100):
     FEATURE_IMPT = CONTAINS_F / NO_F
 
     # get best features
-    best_features_arg, best_feature = get_best_features(FEATURE_IMPT, X, y)
+    best_features_arg, best_feature = get_best_features(FEATURE_IMPT, X, y, model_name)
 
     return best_features_arg, best_feature
 
 
 # sklearn RFE
-def rfe(X, y):
+def rfe(X, y, model_name):
 
     # get estimator
     estimator = svm(X,y)
@@ -102,6 +102,6 @@ def rfe(X, y):
     FEATURE_IMPT = 1 / selector.ranking_ # best feature with largest importance
 
     # get best features
-    best_features_arg, best_feature = get_best_features(FEATURE_IMPT, X, y)
+    best_features_arg, best_feature = get_best_features(FEATURE_IMPT, X, y, model_name)
 
     return best_features_arg, best_feature
