@@ -17,9 +17,10 @@ def get_prediction(X_train, y_train, nn_model, algo ,query):
         # get nearest neighbour of a single query
         nn = nn_model.get_NN([query.flatten()])[0]
         X_, y_ = X_train[nn], y_train[nn]
-
+        algo = algo.replace("KNN","")
     else:
         X_, y_ = X_train, y_train
+        algo = "+" + algo
 
     # if all neighbour has the same class, no training needed
     if len(np.unique(y_)) == 1:
@@ -27,17 +28,17 @@ def get_prediction(X_train, y_train, nn_model, algo ,query):
         best_features_arg, best_feature = [], []
     
     else:
-        try:
+        if len(algo) == 0:
+            pred = mode(y_)[0]
+            best_features_arg, best_feature = [], []
+            return pred, best_features_arg, best_feature
+        else:
             algo = algo.split("+")[1:]
             if len(algo) ==2:
                 fs_name = algo[1]
             else:
                 fs_name = None
             model_name = algo[0]
-        except:
-            pred = mode(y_)[0]
-            best_features_arg, best_feature = [], []
-            return pred, best_features_arg, best_feature
 
 
         # if feature selection algo is selected
