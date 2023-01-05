@@ -3,7 +3,7 @@ from sklearn.preprocessing import MinMaxScaler, OrdinalEncoder
 from sklearn.model_selection import train_test_split, StratifiedShuffleSplit
 import os
 
-DATA_DIR = r".\data"
+DATA_DIR = r"data"
 RANDOM_STATE = 42
 
 #  MNIST
@@ -92,3 +92,22 @@ def load_custom(file_name):
     X_test = scaler.transform(X_test)
 
     return X_train, y_train, X_test, y_test
+    
+def load_data(data):
+	# load data
+	if data.startswith("custom"):
+		file_name = data.split("_")[-1]
+		return load_custom(file_name)
+        
+	else:
+		if data == "mnist":
+			load_data_fn = load_mnist
+		elif data =="splice":
+			load_data_fn = load_splice
+		elif data =="sun":
+			load_data_fn = load_sun
+		else:
+			print("[ERROR] Data not found")
+			raise Exception("Data not found")
+		
+	return load_data_fn()

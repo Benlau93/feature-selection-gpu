@@ -1,27 +1,36 @@
 from sklearn.neighbors import NearestNeighbors
 import time
 
-# get k nearest neighbour to build local classifier
+# get k nearest neighbour
 
 class GENIE:
-    def __init__(self, data, k=100):
-        def knn(self):
-            start_time = time.time()
-            print("--- Training Nearest Neighbours ---")
-
+	def __init__(self, data, k=101):
+    	
+		def knn(self):
+    		# compute training time
+			start_time = time.time()
+			
             # training knn
-            knn = NearestNeighbors(n_neighbors=self.k, n_jobs=-1)
-            knn.fit(data)
-            end_time = time.time()
-            print(f"Neighest Neighbour Trained, time taken: {end_time - start_time:.04f}s")
+			knn = NearestNeighbors(n_neighbors=self.k, n_jobs=-1)
+			knn.fit(data)
+            
+			train_time = time.time() - start_time
+    
+			return knn, train_time
 
-            return knn
+		self.data = data
+		self.k = k
+		self.knn, self.train_time = knn(self)
+		self.nn_time = 0
 
-        self.data = data
-        self.k = k
-        self.knn = knn(self)
+	def get_NN(self, sample):
+        
+        # compute time taken
+		start_time = time.time()
 
-    def get_NN(self, sample):
-        nn = self.knn.kneighbors(sample, self.k, return_distance=False)
+		nn = self.knn.kneighbors(sample, return_distance=False)
+        
+        # store time taken
+		self.nn_time += time.time() - start_time
 
-        return nn
+		return nn

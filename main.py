@@ -1,203 +1,204 @@
 import numpy as np
 from sklearn.metrics import precision_recall_fscore_support, accuracy_score
-from scipy.stats import mode
 import time
 import sys
 
-from data import load_mnist, load_splice, load_sun, load_custom
+from data import load_data
 from GENIE import GENIE
-from feature_selection import algo1, algo2, rfe
-from model import model
+from feature_selection import feature_selection
+from model import Model
 
+def verbose_feature_impt(FEATURE_IMPT, NUM_FEATURES, NUM_TEST):
+	
+	# compute average feature importance
+	AVG_FEATURE_IMPT = FEATURE_IMPT / NUM_TEST
+	AVG_FEATURES = NUM_FEATURES / NUM_TEST
+	AVG_FEATURE_IMPT_ARG = np.argsort(AVG_FEATURE_IMPT)[::-1][:10]
+	AVG_FEATURE_IMPT = AVG_FEATURE_IMPT[AVG_FEATURE_IMPT_ARG]
+        
+	print()
+	print("-----    Feature Importance    -----")
+	print(f"{'Feature'.ljust(18)}|{'Importance'.rjust(18)}")
+	for i in range(len(AVG_FEATURE_IMPT_ARG)):
+		print(f"x{str(AVG_FEATURE_IMPT_ARG[i]).ljust(17)}|{format(AVG_FEATURE_IMPT[i],'.4f').rjust(18)}")
+	print(f"Average number of Features: {AVG_FEATURES:.02f}")
+	print()
 
-def get_prediction(X_train, y_train, nn_model, algo ,query):
+def verbose_time(total_time, knn_time, model_time, fs_time):
+	print()
+	print("-------      Time Taken      -------")
+	print(f"{'Algorithm'.ljust(18)}|{'Time (s)'.rjust(12)}|{'Time (%)'.rjust(12)}")
+	if knn_time >0:
+		knn_per = knn_time / total_time
+		print(f"{'KNN'.ljust(18)}|{format(knn_time,'.4f').rjust(12)}|{format(knn_per,'.2%').rjust(12)}")
+	
+	if fs_time > 0:
+		fs_per = fs_time / total_time
+		print(f"{'Feature Selection'.ljust(18)}|{format(fs_time,'.4f').rjust(12)}|{format(fs_per,'.2%').rjust(12)}")
 
-    # if knn
-    if "KNN" in algo:
-        # get nearest neighbour of a single query
-        nn = nn_model.get_NN([query.flatten()])[0]
-        X_, y_ = X_train[nn], y_train[nn]
-        algo = algo.replace("KNN","")
-    else:
-        X_, y_ = X_train, y_train
-        algo = "+" + algo
+	model_per = model_time / total_time
+	print(f"{'Model'.ljust(18)}|{format(model_time,'.4f').rjust(12)}|{format(model_per,'.2%').rjust(12)}")
 
-    # if all neighbour has the same class, no training needed
-    if len(np.unique(y_)) == 1:
-        pred = [y_[0]]
-        best_features_arg, best_feature = [], []
-    
-    else:
-        if len(algo) == 0:
-            pred = mode(y_)[0]
-            best_features_arg, best_feature = [], []
-            return pred, best_features_arg, best_feature
-        else:
-            algo = algo.split("+")[1:]
-            if len(algo) ==2:
-                fs_name = algo[1]
-            else:
-                fs_name = None
-            model_name = algo[0]
-
-
-        # if feature selection algo is selected
-        if fs_name:
-            # run feature selection
-            if fs_name == "FS1":
-                algo_f = algo1
-            elif fs_name == "FS2":
-                algo_f = algo2
-            elif fs_name == "RFE":
-                algo_f = rfe
-            else:
-                raise Exception("Unknown Feature Selection algo")
-            best_features_arg, best_feature = algo_f(X_, y_, model_name)
-            
-            # filter to best features
-            X_, query = X_[:, best_features_arg], query[:, best_features_arg]
-
-        else:
-            best_features_arg, best_feature = [], []
-
-
-
-        # train model on selected features
-        clf = model(X_, y_, model_name)
-        # make prediction
-        pred = clf.predict(query.reshape(-1,X_.shape[1]))
-    
-    
-    return pred, best_features_arg, best_feature
-
-def verbose_feature_impt(AVG_FEATURE_IMPT_ARG, AVG_FEATURE_IMPT, AVG_FEATURES):
-    print()
-    print("-----    Feature Importance    -----")
-    print(f"{'Feature'.ljust(18)}|{'Importance'.rjust(18)}")
-    for i in range(len(AVG_FEATURE_IMPT_ARG)):
-        print(f"x{str(AVG_FEATURE_IMPT_ARG[i]).ljust(17)}|{format(AVG_FEATURE_IMPT[i],'.4f').rjust(18)}")
-    print(f"Average number of Features: {AVG_FEATURES:.02f}")
-    print()
-
-
-def main(method, data, algo, idx, top):
-
-    # get data
-    if data == "mnist":
-        X_train, y_train,X_test, y_test  = load_mnist()
-    elif data == "splice":
-        X_train, y_train,X_test, y_test  = load_splice()
-    elif data == "sun":
-        X_train, y_train,X_test, y_test  = load_sun()
-    elif data.startswith("custom"):
-        file_name = data.split("_")[-1]
-        X_train, y_train,X_test, y_test  = load_custom(file_name)
-    else:
-        raise ValueError("Wrong data entered")
-
-    # initialize feature impt
-    num_feature = X_train.shape[1]
-    FEATURE_IMPT = np.zeros(num_feature)
-    NUM_FEATURES = 0
-    NUM_TEST = 0
+def main(data, algo, idx):
+	
+	# load data
+	X_train, y_train, X_test, y_test = load_data(data)
+	
+	# initialize global variables
+	num_feature = X_train.shape[1]
+	FEATURE_IMPT = np.zeros(num_feature)
+	NUM_FEATURES = 0
+	NUM_TEST = 0
 
     # track time
-    start_time = time.time()
+	start_time = time.time()
+	model_time, fs_time, knn_time = 0,0,0
 
-    if "KNN" in algo:
-        # train GENIE to get local NN classifer
-        nn_model = GENIE(X_train)
-    else:
-        nn_model = None
+	# get sample queries
+	queries = X_test[:idx].reshape(-1,num_feature)
+	y_true = y_test[:idx]
 
-    # run method
-    print()
-    if method == "test":
-        print(f"--- Predicting on Index {idx} [Algorithm {algo}]---")
-        # get query
-        query = X_test[idx].reshape(-1,num_feature)
+	# determine algorithm
+	algo_list = algo.split("+")
+	KNN = False
+	if "KNN" in algo:
+		KNN = True
+		algo_list = algo_list[1:]
+	try:
+		model_name, fs_name = algo_list
+	except ValueError:
+		model_name = algo_list[0]
+		fs_name = None
+	
+	# run algorithm
+	print(f"[INFO] Evaluating on {idx} Testing Sample(s)[{algo}]...")
+	
+    # train nearest neighbour model
+	if KNN:
+		print("[INFO] Training Nearest Neighbour Model ...")
+		nn_model = GENIE(X_train)
+		
+		# get nearest neighbour of each query
+		nn = nn_model.get_NN(queries)
 
-        # get prediction
-        pred, best_features_arg, best_feature = get_prediction(X_train, y_train, nn_model, algo, query)
+		# record time
+		knn_time += nn_model.train_time + nn_model.nn_time
+		print(f"[INFO] Nearest Neighbour Computed for all Queries")
+		
+		# initialize y pred
+		y_pred = np.zeros(0)
+			
+		# loop through each query
+		for i in range(idx):
+			
+			# get query
+			query = queries[i]
+		
+			# get training data
+			_nn = nn[i]
+			X_nn, y_nn = X_train[_nn], y_train[_nn]
+			
+			if len(np.unique(y_nn)) == 1:
+				_pred = [y_nn[0]]
+			
+			else:
+			# feature selection
+				if fs_name:
+					if NUM_TEST == 0:
+						print(f"[INFO] Running Feature Selection Algorithm ({fs_name})...")
+					
+					# track time
+					fs_start = time.time()
 
-        # add to feature impt
-        FEATURE_IMPT[best_features_arg] += best_feature
-        NUM_FEATURES += len(best_feature)
-        NUM_TEST +=1
+					# feature selection algo
+					best_features_arg, best_features = feature_selection(fs_name, X_nn, y_nn, model_name)
+					
+					# filter to best features only
+					X_nn, query = X_nn[:, best_features_arg], query[best_features_arg]
+					
+					# add to feature importance matrix
+					FEATURE_IMPT[best_features_arg] += best_features
+					NUM_FEATURES += len(best_features)
+					NUM_TEST +=1
 
-        print(f"True Label: {y_test[idx]}, Predicted: {pred[0]}")
+					# record time
+					fs_time += time.time() - fs_start
+					
+					# update number of features
+					num_feature = X_nn.shape[1]
+				
+				
+				# get prediction
+				# track time
+				model_start = time.time()
+				model = Model(X_nn, y_nn, model_name)
+				_pred = model.predict(query.reshape(-1,num_feature))
+				# record time
+				model_time += time.time() - model_start
 
-    elif method == "evaluate":
+			# add to y_pred
+			y_pred = np.append(y_pred, _pred)
+		
+	else: # no KNN
+
+		# feature selection
+		if fs_name:
+			print(f"[INFO] Running Feature Selection Algorithm ({fs_name})...")
+			
+			# feature selection algo
+			best_features_arg, best_features = feature_selection(fs_name, X_train, y_train, model_name)
+			
+			# filter to best features only
+			X_train, queries = X_train[:, best_features_arg], queries[:, best_features_arg]
+			
+			# add to feature importance matrix
+			FEATURE_IMPT[best_features_arg] += best_features
+			NUM_FEATURES += len(best_features)
+			NUM_TEST +=1
+			
+			# update number of features
+			num_feature = X_train.shape[1]
+
+		# model prediction
+		# track time
+		model_start = time.time()
+		model = Model(X_train, y_train, model_name)
+		y_pred = model.predict(queries.reshape(-1,num_feature))
+		# record time
+		model_time += time.time() - model_start
+	
+	print("[INFO] Algorithm completed. Evaluating Results ...")
+	# get classification metrics
+	acc = accuracy_score(y_true, y_pred)
+	precision, recall, f1, _ = precision_recall_fscore_support(y_true, y_pred, average = "weighted")
+	print(f"[RESULT] Accuracy: {acc:.04f}, Precision: {precision:.04f}, Recall: {recall:.04f}, F1: {f1:.04f}")
         
-        print(f"--- Evaluating on {idx:,} Testing Data [Algorithm {algo}]---")
-        if "KNN" in algo:
-            # initialize y_true and pred
-            y_true = np.zeros(0)
-            y_pred = np.zeros(0)
+		
+	# verbose time taken
+	end_time = time.time()
+	total_time = end_time - start_time
+	print(f"[INFO] Evaluation done. Total Time taken: {total_time:.04f}s")
 
-            for i in range(idx):
-                # get query
-                query = X_test[i].reshape(-1,num_feature)
+			
+	# verbose most important features
+	if fs_name and NUM_TEST > 0:
+		verbose_feature_impt(FEATURE_IMPT, NUM_FEATURES, NUM_TEST)
 
-                # get prediction
-                pred, best_features_arg, best_feature = get_prediction(X_train, y_train, nn_model, algo, query)
+	# verbose time taken
+	verbose_time(total_time, knn_time, model_time, fs_time)
 
-                # add to feature impt
-                if len(best_features_arg) >0:
-                    FEATURE_IMPT[best_features_arg] += best_feature
-                    NUM_FEATURES += len(best_feature)
-                    NUM_TEST += 1
-
-                # add to y list
-                y_true = np.append(y_true, y_test[i])
-                y_pred = np.append(y_pred, pred)
-        
-        else:
-            # initialize y_true
-            y_true = y_test[:idx]
-
-            # get query
-            query = X_test[:idx].reshape(-1, num_feature)
-            # get prediction
-            y_pred, best_features_arg, best_feature = get_prediction(X_train, y_train, nn_model, algo, query)
-        
-        # get classification metrics
-        acc = accuracy_score(y_true, y_pred)
-        precision, recall, f1, _ = precision_recall_fscore_support(y_true, y_pred, average = "weighted")
-
-        print(f"Accuracy: {acc:.04f}, Precision: {precision:.04f}, Recall: {recall:.04f}, F1: {f1:.04f}")
-        
-
-    end_time = time.time()
-
-    if "FS" in algo:
-        # verbose for top feature importance
-        AVG_FEATURE_IMPT = FEATURE_IMPT / NUM_TEST
-        AVG_FEATURES = NUM_FEATURES / NUM_TEST
-        AVG_FEATURE_IMPT_ARG = np.argsort(AVG_FEATURE_IMPT)[::-1][:top]
-        AVG_FEATURE_IMPT = AVG_FEATURE_IMPT[AVG_FEATURE_IMPT_ARG]
-        
-        verbose_feature_impt(AVG_FEATURE_IMPT_ARG, AVG_FEATURE_IMPT, AVG_FEATURES)
-
-    print(f"Time Taken: {end_time - start_time:.04f}s")
-    return 1
-
+	
 
 if __name__ == "__main__":
+	data, algo, idx = sys.argv[1:4]
 
-    if len(sys.argv) == 5:
-        method, data, algo, idx = sys.argv[1:5]
-        top = 10
-    else:
-        method, data, algo, idx, top = sys.argv[1:6]
+	# format arg
+	try:
+		idx = int(idx)
+		data = data.lower()
+		algo = algo.upper()
+	except ValueError:
+		print("[ERROR] Wrong format entered")
+		raise Exception("Wrong format entered")
 
-    # format arg
-    try:
-        idx = int(idx)
-        top = int(top)
-        data = data.lower()
-        algo = algo.upper()
-    except ValueError:
-        raise ValueError("Wrong format entered")
-
-    main(method, data, algo, idx, top)
+	main(data, algo, idx)
