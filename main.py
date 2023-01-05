@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from sklearn.metrics import precision_recall_fscore_support, accuracy_score
 import time
 import sys
@@ -38,6 +39,22 @@ def verbose_time(total_time, knn_time, model_time, fs_time):
 
 	model_per = model_time / total_time
 	print(f"{'Model'.ljust(18)}|{format(model_time,'.4f').rjust(12)}|{format(model_per,'.2%').rjust(12)}")
+
+def log_result(results):
+
+	# read current log file
+	log_file = pd.read_csv("result_log.csv")
+
+	# add current result to file
+	log = pd.DataFrame({"data":[results["data"]],"algorithm":[results["algo"]],"sample":[results["sample"]],"accuracy":[results["metrics"]["acc"]],
+						"precision":[results["metrics"]["precision"]], "recall":[results["metrics"]["recall"]], "f1":[results["metrics"]["f1"]],"total_time":[results["time"]["total"]],
+						"knn_time":[results["time"]["knn"]], "model_time":[results["time"]["model"]],"fs_time":[results["time"]["fs"]]})
+
+	log_file = pd.concat([log_file, log], sort=True, ignore_index=True)
+
+	# save
+	log_file.to_csv("result_log.csv", index=False)
+	
 
 def main(data, algo, idx):
 	
@@ -186,6 +203,15 @@ def main(data, algo, idx):
 
 	# verbose time taken
 	verbose_time(total_time, knn_time, model_time, fs_time)
+
+	# log result
+	results = {"algo":algo,
+				"data":data,
+				"sample":idx,
+				"metrics":{"acc":acc, "precision":precision,"recall":recall,"f1":f1},
+				"time":{"knn":knn_time,"model":model_time,"fs":fs_time,"total":total_time}}
+	
+	log_result(results)
 
 	
 
