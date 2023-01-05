@@ -115,12 +115,12 @@ def rfe(X, y, model_name):
     selector = selector.fit(X,y)
 
     # get features importance
-    FEATURE_IMPT = 1 / selector.ranking_ # best feature with largest importance
+    best_feature = 1 / selector.ranking_ # best feature with largest importance
 
     # get best features
-    best_features_arg, best_feature = get_best_features(FEATURE_IMPT, X, y, model_name)
+    best_features_arg = np.nonzero(best_feature == 1)[0]
 
-    return best_features_arg, best_feature
+    return best_features_arg, np.ones(len(best_features_arg))
     
     
 def feature_selection(fs_name, X, y, model_name):

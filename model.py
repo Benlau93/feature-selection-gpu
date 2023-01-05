@@ -1,4 +1,4 @@
-from sklearn.svm import SVC, SVR
+from sklearn.svm import LinearSVC, LinearSVR
 from sklearn.model_selection import cross_val_score
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 
@@ -17,16 +17,14 @@ class Model:
 				
 				# set up model parameters
 				C =  self.model_params["C"] if self.model_params.get("C") else 1.0
-				kernel = self.model_params["kernel"] if self.model_params.get("kernel") else "linear"
-				degree = self.model_params["degree"] if self.model_params.get("degree") else 3
-				gamma = self.model_params["gamma"] if self.model_params.get("gamma") else "scale"
+				loss = self.model_params["loss"] if self.model_params.get("loss") else "squared_hinge"
 				class_weight = self.model_params.get("class_weight")
 				
 				# initialize model
 				if self.model_type == "classifier":
-					model = SVC(C=C, kernel=kernel, degree=degree, gamma=gamma, class_weight=class_weight, random_state=RANDOM_STATE)
+					model = LinearSVC(C=C,  loss=loss, class_weight=class_weight, random_state=RANDOM_STATE)
 				elif self.model_type == "regressor":
-					model = SVR(C=C, kernel=kernel, degree=degree, gamma=gamma, random_state = RANDOM_STATE)
+					model = LinearSVR(C=C,  loss=loss, random_state = RANDOM_STATE)
 			
 			elif self.model_name == "RF":
 				
