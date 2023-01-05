@@ -161,6 +161,10 @@ def main(data, algo, idx):
 		# feature selection
 		if fs_name:
 			print(f"[INFO] Running Feature Selection Algorithm ({fs_name})...")
+
+								
+			# track time
+			fs_start = time.time()
 			
 			# feature selection algo
 			best_features_arg, best_features = feature_selection(fs_name, X_train, y_train, model_name)
@@ -172,6 +176,9 @@ def main(data, algo, idx):
 			FEATURE_IMPT[best_features_arg] += best_features
 			NUM_FEATURES += len(best_features)
 			NUM_TEST +=1
+
+			# record time
+			fs_time += time.time() - fs_start
 			
 			# update number of features
 			num_feature = X_train.shape[1]
