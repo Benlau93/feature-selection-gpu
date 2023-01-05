@@ -1,6 +1,6 @@
 import numpy as np
 from model import Model
-from sklearn.feature_selection import RFE
+from sklearn.feature_selection import RFECV
 
 
 # helper function
@@ -111,7 +111,7 @@ def rfe(X, y, model_name):
     estimator = Model(X,y, model_name).model
 
     # feature selection
-    selector = RFE(estimator, n_features_to_select=0.15)
+    selector = RFECV(estimator, cv=5, n_jobs=-1)
     selector = selector.fit(X,y)
 
     # get features importance
