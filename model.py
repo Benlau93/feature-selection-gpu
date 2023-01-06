@@ -1,5 +1,5 @@
 from sklearn.model_selection import cross_val_score
-from sklearn.svm import LinearSVC, LinearSVR
+from sklearn.svm import SVC, SVR
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.linear_model import LogisticRegression, LinearRegression
@@ -19,14 +19,14 @@ class Model:
 				
 				# set up model parameters
 				C =  self.model_params["C"] if self.model_params.get("C") else 1.0
-				loss = self.model_params["loss"] if self.model_params.get("loss") else "squared_hinge"
+				kernel = self.model_params["kernel"] if self.model_params.get("kernel") else "linear"
 				class_weight = self.model_params.get("class_weight")
 				
 				# initialize model
 				if self.model_type == "classifier":
-					model = LinearSVC(C=C,  loss=loss, class_weight=class_weight, random_state=RANDOM_STATE)
+					model = SVC(C=C,  kernel=kernel, class_weight=class_weight, random_state=RANDOM_STATE)
 				elif self.model_type == "regressor":
-					model = LinearSVR(C=C,  loss=loss, random_state = RANDOM_STATE)
+					model = SVR(C=C,  kernel=kernel, random_state = RANDOM_STATE)
 			
 			elif self.model_name in ["RF","TREE"]:
 				
