@@ -4,7 +4,7 @@ from sklearn.feature_selection import RFE
 
 
 # helper function
-def get_best_features(FEATURE_IMPT, X, y, model_name, reduce_ratio = 0.15):
+def get_best_features(FEATURE_IMPT, X, y, model_name, reduce_ratio = 0.5):
 
     # sort cv in descending order
 	FEATURE_IMPT_ARG = np.argsort(FEATURE_IMPT)[::-1]
@@ -111,7 +111,7 @@ def rfe(X, y, model_name):
     estimator = Model(X,y, model_name).model
 
     # feature selection
-    selector = RFE(estimator, n_features_to_select = 0.15)
+    selector = RFE(estimator, n_features_to_select = 0.5)
     selector = selector.fit(X,y)
 
     # get features importance
@@ -121,6 +121,24 @@ def rfe(X, y, model_name):
     best_features_arg = np.nonzero(best_feature == 1)[0]
 
     return best_features_arg, np.ones(len(best_features_arg))
+
+def rfe_r(X,y, model_name):
+
+    # get estimator
+    estimator = Model(X,y, model_name).model
+
+    # feature selection
+    selector = RFE(estimator, n_features_to_select = 1)
+    selector = selector.fit(X,y)
+
+    # get features importance
+    FEATURE_IMPT = 1 / selector.ranking_ # best feature with largest importance
+
+    # get best features
+    best_features_arg, best_feature = get_best_features(FEATURE_IMPT, X, y, model_name)
+
+    return best_features_arg, best_feature
+
     
     
 def feature_selection(fs_name, X, y, model_name):
@@ -132,6 +150,8 @@ def feature_selection(fs_name, X, y, model_name):
 		fs_fn = algo2
 	elif fs_name == "RFE":
 		fs_fn = rfe
+	elif fs_name == "RFE_R":
+		fs_fn = rfe_r
 	else:
 		print("[ERROR] Unknown Feature Selection Algorithm")
 		raise Exception("Unknown Feature Selection Algorithm")

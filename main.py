@@ -48,7 +48,7 @@ def log_result(results):
 	# add current result to file
 	log = pd.DataFrame({"data":[results["data"]],"algorithm":[results["algo"]],"sample":[results["sample"]],"accuracy":[results["metrics"]["acc"]],
 						"precision":[results["metrics"]["precision"]], "recall":[results["metrics"]["recall"]], "f1":[results["metrics"]["f1"]],"total_time":[results["time"]["total"]],
-						"knn_time":[results["time"]["knn"]], "model_time":[results["time"]["model"]],"fs_time":[results["time"]["fs"]]})
+						"knn_time":[results["time"]["knn"]], "model_time":[results["time"]["model"]],"fs_time":[results["time"]["fs"]],"avg_features":results["metrics"]["avg_features"]})
 
 	log_file = pd.concat([log_file, log], sort=True, ignore_index=True)
 
@@ -221,10 +221,11 @@ def main(data, algo, idx):
 	verbose_time(total_time, knn_time, model_time, fs_time)
 
 	# log result
+	avg_features = np.nan if NUM_TEST == 0 else NUM_FEATURES / NUM_TEST
 	results = {"algo":algo,
 				"data":data,
 				"sample":idx,
-				"metrics":{"acc":acc, "precision":precision,"recall":recall,"f1":f1},
+				"metrics":{"acc":acc, "precision":precision,"recall":recall,"f1":f1,"avg_features":avg_features},
 				"time":{"knn":knn_time,"model":model_time,"fs":fs_time,"total":total_time}}
 	
 	log_result(results)
