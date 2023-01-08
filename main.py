@@ -62,6 +62,7 @@ def main(data, algo, idx):
 	X_train, y_train, X_test, y_test = load_data(data)
 	
 	# initialize global variables
+	TIMEOUT = False
 	num_feature = X_train.shape[1]
 	FEATURE_IMPT = np.zeros(num_feature)
 	NUM_FEATURES = 0
@@ -107,6 +108,11 @@ def main(data, algo, idx):
 			
 		# loop through each query
 		for i in range(idx):
+
+			if TIMEOUT:
+				idx = i
+				y_true = y_test[:idx]
+				break
 			
 			# get query
 			query = queries[i]
@@ -140,6 +146,9 @@ def main(data, algo, idx):
 
 					# record time
 					fs_time += time.time() - fs_start
+
+					if fs_time > 1800:
+						TIMEOUT = True
 					
 					# update number of features
 					num_feature = X_nn.shape[1]
